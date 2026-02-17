@@ -11,7 +11,7 @@ describe('NEAR Transaction Decoding', () => {
     };
     const decoded = decodeAction(action);
     expect(decoded.type).toBe('Transfer');
-    expect(decoded.humanReadable).toContain('Transfer 1000000000000000000000000 NEAR');
+    expect(decoded.humanReadable).toContain('Transfer 1.0000 NEAR');
   });
 
   test('decode FunctionCall action', () => {
