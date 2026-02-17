@@ -7,6 +7,16 @@ export interface DecodedAction {
   humanReadable: string;
 }
 
+function formatNear(yocto: string): string {
+  try {
+    const val = BigInt(yocto);
+    const near = Number(val) / 1e24;
+    return `${near.toFixed(4)} NEAR`;
+  } catch {
+    return `${yocto} yoctoNEAR`;
+  }
+}
+
 export function decodeAction(action: any, receiverId?: string): DecodedAction {
   // Check for enum type from @near-js/transactions
   const actionType = typeof action.enum === 'string' ? action.enum : Object.keys(action)[0];
@@ -32,7 +42,7 @@ export function decodeAction(action: any, receiverId?: string): DecodedAction {
         parsedArgs = JSON.parse(args);
       } catch (e) {}
 
-      let humanReadable = `Call method ${actionData.methodName} with ${actionData.deposit} NEAR deposit`;
+      let humanReadable = `Call method ${actionData.methodName} with ${formatNear(actionData.deposit.toString())} deposit`;
       if (receiverId) {
         const abiResult = defaultRegistry.decodeWithABI(receiverId, actionData.methodName, parsedArgs);
         if (abiResult) {
@@ -54,13 +64,13 @@ export function decodeAction(action: any, receiverId?: string): DecodedAction {
       return {
         type: 'Transfer',
         data: { deposit: actionData.deposit.toString() },
-        humanReadable: `Transfer ${actionData.deposit} NEAR`
+        humanReadable: `Transfer ${formatNear(actionData.deposit.toString())}`
       };
     case 'Stake':
       return {
         type: 'Stake',
         data: { stake: actionData.stake.toString(), publicKey: actionData.publicKey.toString() },
-        humanReadable: `Stake ${actionData.stake} NEAR with public key ${actionData.publicKey}`
+        humanReadable: `Stake ${formatNear(actionData.stake.toString())} with public key ${actionData.publicKey}`
       };
     case 'AddKey':
       return {
@@ -88,3 +98,4 @@ export function decodeAction(action: any, receiverId?: string): DecodedAction {
       };
   }
 }
+
