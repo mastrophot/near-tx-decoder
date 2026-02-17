@@ -1,11 +1,13 @@
 
+import { defaultRegistry } from './registry';
+
 export interface DecodedAction {
   type: string;
   data: any;
   humanReadable: string;
 }
 
-export function decodeAction(action: any): DecodedAction {
+export function decodeAction(action: any, receiverId?: string): DecodedAction {
   // Check for enum type from @near-js/transactions
   const actionType = typeof action.enum === 'string' ? action.enum : Object.keys(action)[0];
   const actionData = action[actionType] || action;
@@ -30,6 +32,14 @@ export function decodeAction(action: any): DecodedAction {
         parsedArgs = JSON.parse(args);
       } catch (e) {}
 
+      let humanReadable = `Call method ${actionData.methodName} with ${actionData.deposit} NEAR deposit`;
+      if (receiverId) {
+        const abiResult = defaultRegistry.decodeWithABI(receiverId, actionData.methodName, parsedArgs);
+        if (abiResult) {
+          humanReadable = abiResult;
+        }
+      }
+
       return {
         type: 'FunctionCall',
         data: {
@@ -38,7 +48,7 @@ export function decodeAction(action: any): DecodedAction {
           deposit: actionData.deposit.toString(),
           gas: actionData.gas.toString()
         },
-        humanReadable: `Call method ${actionData.methodName} with ${actionData.deposit} NEAR deposit`
+        humanReadable
       };
     case 'Transfer':
       return {
